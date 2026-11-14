@@ -1,200 +1,319 @@
+/* ==========================
+        COBRA KAI
+========================== */
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const tamanho = 20;
+const tamanho = 30;
 const total = canvas.width / tamanho;
 
 let cobra;
 let direcaoX;
 let direcaoY;
 let comida;
-let pontos;
+let pontos = 0;
 let jogo;
 let velocidade;
 
 let jogoIniciado = false;
-
 let ranking = [];
 
 let tipoComida = "🍎";
 let valorComida = 1;
 
-function iniciarJogo(){
+// INICIAR JOGO
 
-    cobra = [
-        {x:10, y:10}
-    ];
+function iniciarJogo() {
+
+   cobra = [
+    {x:10, y:10}
+];
 
     direcaoX = 1;
     direcaoY = 0;
 
-    gerarComida();
-
     pontos = 0;
     velocidade = 150;
+    jogoIniciado = true;
+
+    gerarComida();
 
     document.getElementById("pontuacao").innerHTML =
         "Pontuação: " + pontos;
 
     clearInterval(jogo);
+
     jogo = setInterval(atualizar, velocidade);
 
     desenhar();
 }
 
-function gerarComida(){
+// GERAR COMIDAS
 
-    comida = {
-        x: Math.floor(Math.random() * total),
-        y: Math.floor(Math.random() * total)
-    };
+function gerarComida() {
+
+    // Evitar comida em cima da cobra
+    do {
+        comida = {
+            x: Math.floor(Math.random() * total),
+            y: Math.floor(Math.random() * total)
+        };
+
+    } while (
+        cobra.some(parte =>
+            parte.x === comida.x &&
+            parte.y === comida.y
+        )
+    );
 
     let sorteio = Math.random();
 
-    if(sorteio < 0.70){
+    if (sorteio < 0.70) {
 
         tipoComida = "🍎";
         valorComida = 1;
 
-    }else if(sorteio < 0.95){
+    } else if (sorteio < 0.95) {
 
         tipoComida = "⭐";
         valorComida = 5;
 
-    }else{
+    } else {
 
         tipoComida = "💎";
         valorComida = 10;
     }
 }
 
-function comecarJogo(){
+// BOTAO COMECAR JOGO
 
-    let nome =
-        document.getElementById("nomeJogador").value.trim();
+function comecarJogo() {
 
-    if(nome === ""){
+    let nome = document.getElementById("nomeJogador")
+        .value.trim();
 
+    if (nome === "") {
         alert("Digite seu nome para começar!");
         return;
     }
 
-    jogoIniciado = true;
-
     iniciarJogo();
 }
 
-function atualizarRanking(){
+// ATUALIZAR RANKING
 
-    ranking.sort((a,b) => b.pontos - a.pontos);
+function atualizarRanking() {
 
-    let html = "";
+    ranking.sort((a, b) => b.pontos - a.pontos);
+
+    const rankingElemento =
+        document.getElementById("ranking");
+
+    rankingElemento.innerHTML = "";
+
+    if (ranking.length === 0) {
+        rankingElemento.textContent =
+            "Nenhum jogador ainda";
+        return;
+    }
 
     ranking.forEach((jogador, indice) => {
 
-        html += `
-            <div class="item-ranking">
-                <strong>${indice + 1}º Lugar</strong><br>
-                ${jogador.nome}<br>
-                ${jogador.pontos} pontos
-            </div>
-        `;
+        const item = document.createElement("div");
+        item.className = "item-ranking";
+
+        const posicao = document.createElement("strong");
+        posicao.textContent = `${indice + 1}º Lugar`;
+
+        item.appendChild(posicao);
+        item.appendChild(document.createElement("br"));
+
+        item.appendChild(
+            document.createTextNode(jogador.nome)
+        );
+
+        item.appendChild(document.createElement("br"));
+
+        item.appendChild(
+            document.createTextNode(
+                `${jogador.pontos} pontos`
+            )
+        );
+
+        rankingElemento.appendChild(item);
     });
-
-    if(ranking.length === 0){
-        html = "Nenhum jogador ainda";
-    }
-
-    document.getElementById("ranking").innerHTML =
-        html;
 }
 
-function desenhar(){
+// QUADRICULADO DO TABULEIRO
 
-    ctx.fillStyle = "black";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+function desenharGrade() {
 
-    ctx.font = "20px Arial";
+    ctx.strokeStyle = "rgba(57, 255, 136, 0.12)";
+    ctx.lineWidth = 1;
+
+    // Linhas verticais
+    for (let x = 0; x <= canvas.width; x += tamanho) {
+
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+
+    // Linhas horizontais
+    for (let y = 0; y <= canvas.height; y += tamanho) {
+
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+}
+
+// DESENHAR O JOGO
+
+function desenhar() {
+
+    // Fundo escuro
+    ctx.fillStyle = "#020803";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Quadriculado
+    desenharGrade();
+
+    // DESENHAR COMIDA
+    ctx.font = "25px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
     ctx.fillText(
         tipoComida,
-        comida.x * tamanho,
-        comida.y * tamanho + 18
+        comida.x * tamanho + tamanho / 2,
+        comida.y * tamanho + tamanho / 2
     );
 
-    cobra.forEach((parte, indice)=>{
+    // DESENHAR CORPO DA COBRINHA
+    cobra.forEach((parte, indice) => {
 
-        if(indice === 0){
+        // A cabeca sera desenhada depois
+        if (indice === 0) return;
 
-            ctx.font = "20px Arial";
+        let x = parte.x * tamanho;
+        let y = parte.y * tamanho;
 
-            ctx.fillText(
-                "🐍",
-                parte.x * tamanho,
-                parte.y * tamanho + 18
-            );
+        // Corpo verde neon
+        ctx.fillStyle = "#39ff14";
+        ctx.shadowColor = "#39ff14";
+        ctx.shadowBlur = 4;
 
-        }else{
+        ctx.beginPath();
 
-            ctx.fillStyle = "#00FF00";
+        ctx.roundRect(
+            x + 4,
+            y + 4,
+            tamanho - 8,
+            tamanho - 8,
+            6
+        );
 
-            ctx.fillRect(
-                parte.x * tamanho,
-                parte.y * tamanho,
-                tamanho,
-                tamanho
-            );
-        }
+        ctx.fill();
 
+        // Reflexo na parte superior
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(255,255,255,0.20)";
+
+        ctx.beginPath();
+
+        ctx.roundRect(
+            x + 6,
+            y + 5,
+            tamanho - 12,
+            5,
+            3
+        );
+
+        ctx.fill();
     });
 
+   
+    const cabeca = cobra[0];
+
+    ctx.shadowBlur = 0;
+    ctx.font = "27px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(
+        "🐍",
+        cabeca.x * tamanho + tamanho / 2,
+        cabeca.y * tamanho + tamanho / 2
+    );
+
+    ctx.shadowBlur = 0;
+    ctx.textAlign = "start";
+    ctx.textBaseline = "alphabetic";
 }
 
-function atualizar(){
+// MOVIMENTACAO DA COBRINHA
+
+function atualizar() {
+
+    if (!jogoIniciado) return;
 
     let cabeca = {
         x: cobra[0].x + direcaoX,
         y: cobra[0].y + direcaoY
     };
 
-    if(
+    // Colisao com as paredes
+    if (
         cabeca.x < 0 ||
         cabeca.y < 0 ||
         cabeca.x >= total ||
         cabeca.y >= total
-    ){
+    ) {
         finalizarJogo();
         return;
     }
 
-    for(let i = 0; i < cobra.length; i++){
+    // Verificar se vai comer
+    const vaiComer =
+        cabeca.x === comida.x &&
+        cabeca.y === comida.y;
 
-        if(
-            cobra[i].x === cabeca.x &&
-            cobra[i].y === cabeca.y
-        ){
+    // Ao nao comer, a cauda vai sair da posicao
+    const corpoVerificado = vaiComer
+        ? cobra
+        : cobra.slice(0, -1);
+
+    // Colisao com o proprio corpo
+    for (let parte of corpoVerificado) {
+
+        if (
+            parte.x === cabeca.x &&
+            parte.y === cabeca.y
+        ) {
             finalizarJogo();
             return;
         }
     }
 
+    // Nova posicao da cabeca
     cobra.unshift(cabeca);
 
-    if(
-        cabeca.x === comida.x &&
-        cabeca.y === comida.y
-    ){
+    if (vaiComer) {
 
         pontos += valorComida;
 
         document.getElementById("pontuacao").innerHTML =
             "Pontuação: " + pontos;
 
-        if(
+        // Aumentar velocidade
+        if (
             pontos % 5 === 0 &&
             velocidade > 60
-        ){
-
+        ) {
             velocidade -= 10;
 
             clearInterval(jogo);
@@ -207,22 +326,26 @@ function atualizar(){
 
         gerarComida();
 
-    }else{
+    } else {
 
+        // Remove a ultima parte
         cobra.pop();
     }
 
     desenhar();
 }
 
-function finalizarJogo(){
+// FINALIZAR JOGO
+
+function finalizarJogo() {
+
+    if (!jogoIniciado) return;
 
     clearInterval(jogo);
+    jogoIniciado = false;
 
-    let nome =
-        document.getElementById("nomeJogador")
-        .value
-        .trim();
+    let nome = document.getElementById("nomeJogador")
+        .value.trim();
 
     ranking.push({
         nome: nome || "Sem Nome",
@@ -231,40 +354,52 @@ function finalizarJogo(){
 
     atualizarRanking();
 
-    alert("Game Over!");
+    alert("Game Over! Sua pontuação foi: " + pontos);
 }
 
-document.addEventListener("keydown",(evento)=>{
+// CONTROLES DO TECLADO
 
-    if(!jogoIniciado){
-        return;
-    }
+document.addEventListener("keydown", (evento) => {
 
-    switch(evento.key){
+    if (!jogoIniciado) return;
+
+    const teclas = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight"
+    ];
+
+    if (!teclas.includes(evento.key)) return;
+
+    // Evitar que as setas rolem a pagina
+    evento.preventDefault();
+
+    switch (evento.key) {
 
         case "ArrowUp":
-            if(direcaoY === 0){
+            if (direcaoY === 0) {
                 direcaoX = 0;
                 direcaoY = -1;
             }
             break;
 
         case "ArrowDown":
-            if(direcaoY === 0){
+            if (direcaoY === 0) {
                 direcaoX = 0;
                 direcaoY = 1;
             }
             break;
 
         case "ArrowLeft":
-            if(direcaoX === 0){
+            if (direcaoX === 0) {
                 direcaoX = -1;
                 direcaoY = 0;
             }
             break;
 
         case "ArrowRight":
-            if(direcaoX === 0){
+            if (direcaoX === 0) {
                 direcaoX = 1;
                 direcaoY = 0;
             }
@@ -272,13 +407,14 @@ document.addEventListener("keydown",(evento)=>{
     }
 });
 
-function reiniciarJogo(){
+// BOTAO REINICIAR JOGO
 
-    let nome =
-        document.getElementById("nomeJogador").value.trim();
+function reiniciarJogo() {
 
-    if(nome === ""){
+    let nome = document.getElementById("nomeJogador")
+        .value.trim();
 
+    if (nome === "") {
         alert("Digite seu nome para começar!");
         return;
     }
