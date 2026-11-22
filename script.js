@@ -173,16 +173,15 @@ function desenharGrade() {
 
 // DESENHAR O JOGO
 
+
 function desenhar() {
 
-    // Fundo escuro
+    // Fundo escuro e quadriculado
     ctx.fillStyle = "#020803";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Quadriculado
     desenharGrade();
 
-    // DESENHAR COMIDA
+    // Desenhar as frutas
     ctx.font = "25px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -193,67 +192,148 @@ function desenhar() {
         comida.y * tamanho + tamanho / 2
     );
 
-    // DESENHAR CORPO DA COBRINHA
-    cobra.forEach((parte, indice) => {
+    // Corpo da cobrinha ninja
+    for (let indice = cobra.length - 1; indice > 0; indice--) {
 
-        // A cabeca sera desenhada depois
-        if (indice === 0) return;
+        const parte = cobra[indice];
+        const x = parte.x * tamanho + tamanho / 2;
+        const y = parte.y * tamanho + tamanho / 2;
 
-        let x = parte.x * tamanho;
-        let y = parte.y * tamanho;
+        ctx.save();
 
-        // Corpo verde neon
-        ctx.fillStyle = "#39ff14";
         ctx.shadowColor = "#39ff14";
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = 7;
+
+        // Escamas verdes arredondadas
+        ctx.fillStyle = indice % 2 === 0 ? "#39c928" : "#68ef36";
+        ctx.strokeStyle = "#176c18";
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
-
-        ctx.roundRect(
-            x + 4,
-            y + 4,
-            tamanho - 8,
-            tamanho - 8,
-            6
-        );
-
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
 
-        // Reflexo na parte superior
+        // Barriga amarela
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "rgba(255,255,255,0.20)";
+        ctx.fillStyle = "#f5d64b";
 
         ctx.beginPath();
-
-        ctx.roundRect(
-            x + 6,
-            y + 5,
-            tamanho - 12,
-            5,
-            3
-        );
-
+        ctx.ellipse(x, y + 7, 10, 5, 0, 0, Math.PI * 2);
         ctx.fill();
-    });
 
-   
+        // Brilho das escamas
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.beginPath();
+        ctx.ellipse(x - 4, y - 5, 5, 3, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // Cabeça da cobrinha ninja
     const cabeca = cobra[0];
 
-    ctx.shadowBlur = 0;
-    ctx.font = "27px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    const x = cabeca.x * tamanho + tamanho / 2;
+    const y = cabeca.y * tamanho + tamanho / 2;
 
-    ctx.fillText(
-        "🐍",
-        cabeca.x * tamanho + tamanho / 2,
-        cabeca.y * tamanho + tamanho / 2
-    );
+    ctx.save();
+    ctx.translate(x, y);
+
+    // A cabeça acompanha a direção
+    let angulo = 0;
+
+    if (direcaoX === -1) angulo = Math.PI;
+    if (direcaoY === 1) angulo = Math.PI / 2;
+    if (direcaoY === -1) angulo = -Math.PI / 2;
+
+    ctx.rotate(angulo);
+
+    // Cabeça verde
+    ctx.shadowColor = "#39ff14";
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = "#53dc28";
+    ctx.strokeStyle = "#145b13";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
     ctx.shadowBlur = 0;
+
+    // Faixa vermelha ninja
+    ctx.fillStyle = "#e82929";
+    ctx.fillRect(-11, -10, 22, 5);
+
+    // Pontas da faixa
+    ctx.beginPath();
+    ctx.moveTo(-10, -8);
+    ctx.lineTo(-17, -13);
+    ctx.lineTo(-15, -5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Óculos escuros
+    ctx.fillStyle = "#101010";
+
+    ctx.beginPath();
+    ctx.roundRect(-10, -5, 9, 8, 3);
+    ctx.roundRect(2, -5, 9, 8, 3);
+    ctx.fill();
+
+    // Ponte dos óculos
+    ctx.strokeStyle = "#101010";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-1, -2);
+    ctx.lineTo(2, -2);
+    ctx.stroke();
+
+    // Reflexo nos óculos
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillRect(-8, -4, 3, 2);
+    ctx.fillRect(4, -4, 3, 2);
+
+    // Focinho
+    ctx.fillStyle = "#79ef47";
+    ctx.beginPath();
+    ctx.ellipse(10, 5, 6, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Narina
+    ctx.fillStyle = "#16591c";
+    ctx.beginPath();
+    ctx.arc(12, 3, 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sorriso
+    ctx.strokeStyle = "#173b16";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(6, 5, 5, 0.2, 1.5);
+    ctx.stroke();
+
+    // Língua vermelha bifurcada
+    ctx.strokeStyle = "#ff4242";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(13, 9);
+    ctx.lineTo(19, 12);
+    ctx.lineTo(23, 9);
+    ctx.moveTo(19, 12);
+    ctx.lineTo(22, 15);
+    ctx.stroke();
+
+    ctx.restore();
+
     ctx.textAlign = "start";
     ctx.textBaseline = "alphabetic";
 }
+
 
 // MOVIMENTACAO DA COBRINHA
 
