@@ -1,5 +1,8 @@
 Cobra Kai
 
+Alunos:
+Arleane dos Santos Moraes, Isadora Assis, Claudio Josimar.
+
 Sobre o projeto:
 
 O Cobra Kai é um jogo da cobrinha que desenvolvemos em grupo para a disciplina de JavaScript do curso de Análise e Desenvolvimento de Sistemas do Senac.
