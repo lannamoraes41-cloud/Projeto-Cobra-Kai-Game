@@ -34,7 +34,7 @@ function iniciarJogo() {
     direcaoY = 0;
 
     pontos = 0;
-    velocidade = 150;
+    velocidade = 250;
     jogoIniciado = true;
 
     gerarComida();
